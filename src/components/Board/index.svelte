@@ -1,7 +1,8 @@
 <script>
 	import { BOX_SIZE } from '@sudoku/constants';
 	import { gamePaused } from '@sudoku/stores/game';
-	import { grid, userGrid, invalidCells } from '@sudoku/stores/grid';
+	import { userGrid } from '@sudoku/stores/grid';
+	import { exploreCells, givenCells, hintState, invalidCells } from '@sudoku/stores/history';
 	import { settings } from '@sudoku/stores/settings';
 	import { cursor } from '@sudoku/stores/cursor';
 	import { candidates } from '@sudoku/stores/candidates';
@@ -27,6 +28,18 @@
 
 		return gridStore[cursorStore.y][cursorStore.x];
 	}
+
+	function getCellCandidates(candidateStore, hint, x, y) {
+		if (hint && hint.col === x && hint.row === y && hint.level >= 2) {
+			return hint.candidates;
+		}
+
+		return candidateStore[x + ',' + y];
+	}
+
+	function isHinted(hint, x, y) {
+		return Boolean(hint && hint.col === x && hint.row === y);
+	}
 </script>
 
 <div class="board-padding relative z-10">
@@ -42,13 +55,15 @@
 					<Cell {value}
 					      cellY={y + 1}
 					      cellX={x + 1}
-					      candidates={$candidates[x + ',' + y]}
+					      candidates={getCellCandidates($candidates, $hintState, x, y)}
+					      hinted={isHinted($hintState, x, y)}
 					      disabled={$gamePaused}
 					      selected={isSelected($cursor, x, y)}
-					      userNumber={$grid[y][x] === 0}
+					      exploringNumber={$exploreCells.includes(x + ',' + y)}
+					      userNumber={$givenCells[y][x] === 0}
 					      sameArea={$settings.highlightCells && !isSelected($cursor, x, y) && isSameArea($cursor, x, y)}
 					      sameNumber={$settings.highlightSame && value && !isSelected($cursor, x, y) && getValueAtCursor($userGrid, $cursor) === value}
-					      conflictingNumber={$settings.highlightConflicting && $grid[y][x] === 0 && $invalidCells.includes(x + ',' + y)} />
+					      conflictingNumber={$settings.highlightConflicting && $givenCells[y][x] === 0 && $invalidCells.includes(x + ',' + y)} />
 				{/each}
 			{/each}
 

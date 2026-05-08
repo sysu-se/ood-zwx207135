@@ -1,6 +1,5 @@
 <script>
 	import Candidates from './Candidates.svelte';
-	import { fade } from 'svelte/transition';
 	import { SUDOKU_SIZE } from '@sudoku/constants';
 	import { cursor } from '@sudoku/stores/cursor';
 
@@ -11,8 +10,10 @@
 
 	export let disabled;
 	export let conflictingNumber;
+	export let exploringNumber;
 	export let userNumber;
 	export let selected;
+	export let hinted;
 	export let sameArea;
 	export let sameNumber;
 
@@ -31,14 +32,16 @@
 	{#if !disabled}
 		<div class="cell-inner"
 		     class:user-number={userNumber}
+		     class:exploring-number={exploringNumber}
 		     class:selected={selected}
+		     class:hinted={hinted && !selected}
 		     class:same-area={sameArea}
 		     class:same-number={sameNumber}
 		     class:conflicting-number={conflictingNumber}>
 
 			<button class="cell-btn" on:click={cursor.set(cellX - 1, cellY - 1)}>
 				{#if candidates}
-					<Candidates {candidates} />
+					<Candidates {candidates} {hinted} />
 				{:else}
 					<span class="cell-text">{value || ''}</span>
 				{/if}
@@ -104,8 +107,16 @@
 		@apply text-primary;
 	}
 
+	.exploring-number {
+		@apply bg-blue-100 text-blue-700;
+	}
+
 	.selected {
 		@apply bg-primary text-white;
+	}
+
+	.hinted {
+		@apply bg-yellow-100;
 	}
 
 	.same-area {
